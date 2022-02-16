@@ -2,7 +2,7 @@
 Collection of the core mathematical operators used throughout the code base.
 """
 
-import functools
+import math
 
 # ## Task 0.1
 

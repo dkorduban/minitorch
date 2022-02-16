@@ -43,7 +43,9 @@ class Module:
         for name, module in self.__dict__["_modules"].items():
             named_parameters = module.named_parameters()
             prefix = name + "."
-            prefixed_named_parameters = [(prefix + paramname, value) for paramname, value in named_parameters]
+            prefixed_named_parameters = [
+                (prefix + paramname, value) for paramname, value in named_parameters
+            ]
             result.extend(prefixed_named_parameters)
         return result
 

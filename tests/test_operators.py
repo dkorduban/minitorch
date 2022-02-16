@@ -148,8 +148,8 @@ def test_other(a):
     """
     Write a test that ensures some other property holds for your functions.
     """
-    if a > 0:
-        eps = 1e-2
+    eps = 1e-2
+    if a > eps:
         assert_close(log(a + eps), log(a) + log_back(a, eps))
 
 
