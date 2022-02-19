@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 variable_count = 1
 
 
@@ -188,10 +190,9 @@ class History:
             d_output : a derivative with respect to this variable
 
         Returns:
-            list of numbers : a derivative with respect to `inputs`
+            list of (`Variable`, number) : derivatives with respect to `inputs`
         """
-        # TODO: Implement for Task 1.4.
-        raise NotImplementedError("Need to implement for Task 1.4")
+        return self.last_fn.chain_rule(self.ctx, self.inputs, d_output)
 
 
 class FunctionBase:
@@ -273,8 +274,13 @@ class FunctionBase:
         """
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
-        # TODO: Implement for Task 1.3.
-        raise NotImplementedError("Need to implement for Task 1.3")
+        d_values = wrap_tuple(cls.backward(ctx, d_output))
+        assert len(d_values) == len(inputs), f"{d_values} {inputs}"
+        result = []
+        for var, d_value in zip(inputs, d_values):
+            if not is_constant(var):
+                result.append((var, d_value))
+        return result
 
 
 # Algorithms for backpropagation
@@ -295,8 +301,20 @@ def topological_sort(variable):
         list of Variables : Non-constant Variables in topological order
                             starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    result = []
+    visited = set()
+
+    def dfs(var):
+        if is_constant(var) or var.unique_id in visited:
+            return
+        visited.add(var.unique_id)
+        inputs = var.history.inputs or []
+        for input in inputs:
+            dfs(input)
+        result.append(var)
+
+    dfs(variable)
+    return list(reversed(result))
 
 
 def backpropagate(variable, deriv):
@@ -312,5 +330,13 @@ def backpropagate(variable, deriv):
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    order = topological_sort(variable)
+    d_dict = defaultdict(float)
+    d_dict[variable.unique_id] = deriv
+    for var in order:
+        d = d_dict[var.unique_id]
+        if not var.is_leaf():
+            for v, d_part in var.history.backprop_step(d):
+                d_dict[v.unique_id] += d_part
+        else:
+            var.accumulate_derivative(d)
