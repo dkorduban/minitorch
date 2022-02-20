@@ -67,8 +67,12 @@ def broadcast_index(big_index, big_shape, shape, out_index):
     Returns:
         None : Fills in `out_index`.
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    assert len(big_index) == len(big_shape), f"{big_index} {big_shape}"
+    assert len(out_index) == len(shape), f"{out_index} {shape}"
+    delta = len(big_shape) - len(shape)
+    for i in range(delta, len(big_shape)):
+        assert big_shape[i] == shape[i - delta] or shape[i - delta] == 1
+        out_index[i - delta] = big_index[i] if big_shape[i] == shape[i - delta] else 0
 
 
 def shape_broadcast(shape1, shape2):
@@ -85,8 +89,19 @@ def shape_broadcast(shape1, shape2):
     Raises:
         IndexingError : if cannot broadcast
     """
-    # TODO: Implement for Task 2.2.
-    raise NotImplementedError("Need to implement for Task 2.2")
+    assert isinstance(shape1, tuple)
+    assert isinstance(shape2, tuple)
+
+    size = max(len(shape1), len(shape2))
+    shape1a = (1,) * (size - len(shape1)) + shape1
+    shape2a = (1,) * (size - len(shape2)) + shape2
+
+    def broadcast(a, b):
+        if a != b and min(a, b) > 1:
+            raise IndexingError("can't broadcast {shape1} and {shape2}")
+        return max(a, b)
+
+    return tuple(broadcast(a, b) for a, b in zip(shape1a, shape2a))
 
 
 def strides_from_shape(shape):
