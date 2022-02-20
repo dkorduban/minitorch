@@ -1,3 +1,4 @@
+import functools
 import random
 from .operators import prod
 from numpy import array, float64, ndarray
@@ -24,8 +25,13 @@ def index_to_position(index, strides):
         int : position in storage
     """
 
-    assert len(index) == len(strides), f"dim mismatch: {index} and {strides}"
-    return sum(idx * stride for idx, stride in zip(index, strides))
+    # assert len(index) == len(strides), (index, strides)
+    # return sum([idx * stride for idx, stride in zip(index, strides)])
+    # return functools.reduce(lambda x, y: x + y, [idx * stride for idx, stride in zip(index, strides)], 0)
+    pos = 0
+    for i in range(len(index)):
+        pos += index[i] * strides[i]
+    return pos
 
 
 def to_index(ordinal, shape, out_index):
@@ -44,10 +50,16 @@ def to_index(ordinal, shape, out_index):
       None : Fills in `out_index`.
 
     """
-    assert len(shape) == len(out_index), f"dim mismatch: {shape} and {out_index}"
-    for i in range(len(shape) - 1, -1, -1):
-        out_index[i] = ordinal % shape[i]
-        ordinal //= shape[i]
+    # assert len(shape) == len(out_index), (shape, out_index)
+    o = ordinal
+    # for i in range(len(shape) - 1, -1, -1):
+    k = len(shape) - 1
+    while k >= 0:
+        out_index[k] = o % shape[k]
+        o //= shape[k]
+        k -= 1
+    # for i in range(len(shape)):
+    #     k = len(shape) - i - 1
 
 
 def broadcast_index(big_index, big_shape, shape, out_index):
@@ -67,11 +79,11 @@ def broadcast_index(big_index, big_shape, shape, out_index):
     Returns:
         None : Fills in `out_index`.
     """
-    assert len(big_index) == len(big_shape), f"{big_index} {big_shape}"
-    assert len(out_index) == len(shape), f"{out_index} {shape}"
+    # assert len(big_index) == len(big_shape), (big_index, big_shape)
+    # assert len(out_index) == len(shape), (out_index, shape)
     delta = len(big_shape) - len(shape)
     for i in range(delta, len(big_shape)):
-        assert big_shape[i] == shape[i - delta] or shape[i - delta] == 1
+        # assert big_shape[i] == shape[i - delta] or shape[i - delta] == 1
         out_index[i - delta] = big_index[i] if big_shape[i] == shape[i - delta] else 0
 
 

@@ -72,6 +72,7 @@ def test_one_args(fn, backend, data):
 def test_two_args(fn, backend, data):
     "Run forward for all two arg functions above."
     t1, t2 = data.draw(shaped_tensors(2, backend=shared[backend]))
+    print(f"fn = {fn}")
     name, base_fn, tensor_fn = fn
     t3 = tensor_fn(t1, t2)
     for ind in t3._tensor.indices():

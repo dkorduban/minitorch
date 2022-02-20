@@ -4,8 +4,13 @@ from numba import njit
 
 # MAP
 print("MAP")
-tmap = minitorch.fast_ops.tensor_map(njit()(minitorch.operators.id))
+tmap = minitorch.fast_ops.tensor_map(njit()(lambda x: x))
 out, a = minitorch.zeros((10,)), minitorch.zeros((10,))
+print("!!!!!!!!!!!!!!", *out.tuple(), *a.tuple())
+for k in out.tuple():
+    print(type(k))
+for k in a.tuple():
+    print(type(k))
 tmap(*out.tuple(), *a.tuple())
 print(tmap.parallel_diagnostics(level=3))
 

@@ -75,7 +75,7 @@ def sigmoid_back(a, d_output):
     # equivalent to
     # return (exp(-a) / ((1 + exp(-a))**2) if a >= 0
     #     else exp(a) / ((1 + exp(a))**2))
-    return d_output * exp(-a) / ((1 + exp(-a)) ** 2)
+    return d_output * math.exp(-a) / ((1 + math.exp(-a)) ** 2)
 
 
 def relu(x):
@@ -90,7 +90,7 @@ def relu(x):
     Returns:
         float : relu value
     """
-    return max(x, 0.0)
+    return x if x > 0 else 0.0
 
 
 EPS = 1e-6

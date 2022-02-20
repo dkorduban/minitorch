@@ -6,6 +6,7 @@ from .tensor_data import (
     shape_broadcast,
     MAX_DIMS,
 )
+from . import operators
 from numba import njit, prange
 
 
@@ -16,7 +17,10 @@ from numba import njit, prange
 # in these functions.
 to_index = njit(inline="always")(to_index)
 index_to_position = njit(inline="always")(index_to_position)
+# index_to_position = njit(index_to_position)
 broadcast_index = njit(inline="always")(broadcast_index)
+# prod = njit(inline="always")(operators.prod)
+# prod = njit(operators.prod)
 
 
 def tensor_map(fn):
@@ -43,8 +47,27 @@ def tensor_map(fn):
     """
 
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+        out_size = np.prod(out_shape)
+        in_size = np.prod(in_shape)
+        if out_size == in_size and np.array_equal(out_strides, in_strides):
+            for pos in prange(out_size):
+                out[pos] = fn(in_storage[pos])
+        else:
+            # out_index = np.zeros((len(out), len(in_shape)), dtype= np.int32)
+            # in_index = np.zeros((len(out), len(in_shape)), dtype= np.int32)
+            # out_index=out_shape.copy()#等价于copy
+            # in_index=in_shape.copy()
+
+            for i in prange(out_size):
+                # out_index=np.empty(out_shape.shape) #等价于copy
+                # in_index=np.empty(in_shape.shape)
+                out_index = out_shape.copy()  # 等价于copy
+                in_index = in_shape.copy()
+                to_index(i + 0, out_shape, out_index)
+                broadcast_index(out_index, out_shape, in_shape, in_index)
+                out_pos = index_to_position(out_index, out_strides)
+                in_pos = index_to_position(in_index, in_strides)
+                out[out_pos] = fn(in_storage[in_pos])
 
     return njit(parallel=True)(_map)
 
@@ -117,8 +140,31 @@ def tensor_zip(fn):
         b_shape,
         b_strides,
     ):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+        out_size = np.prod(out_shape)
+        a_size = np.prod(a_shape)
+        b_size = np.prod(b_shape)
+        if (
+            out_size == a_size == b_size
+            and np.array_equal(out_strides, a_strides)
+            and np.array_equal(out_strides, b_strides)
+        ):
+            for pos in prange(out_size):
+                out[pos] = fn(a_storage[pos], b_storage[pos])
+        else:
+            # out_index = np.array(out_shape)
+            # a_index = np.array(a_shape)
+            # b_index = np.array(b_shape)
+            for i in prange(out_size):
+                out_index = out_shape.copy()  # 等价于copy
+                a_index = a_shape.copy()
+                b_index = b_shape.copy()
+                to_index(i + 0, out_shape, out_index)
+                broadcast_index(out_index, out_shape, a_shape, a_index)
+                broadcast_index(out_index, out_shape, b_shape, b_index)
+                out_pos = index_to_position(out_index, out_strides)
+                a_pos = index_to_position(a_index, a_strides)
+                b_pos = index_to_position(b_index, b_strides)
+                out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
 
     return njit(parallel=True)(_zip)
 
@@ -175,8 +221,21 @@ def tensor_reduce(fn):
     """
 
     def _reduce(out, out_shape, out_strides, a_storage, a_shape, a_strides, reduce_dim):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError("Need to implement for Task 3.1")
+        a_size = np.prod(a_shape)
+        # out_index = np.array(out_shape)
+        # a_index = np.array(a_shape)
+        for i in range(a_size):
+            out_index = out_shape.copy()  # 等价于copy
+            a_index = a_shape.copy()
+            to_index(i + 0, a_shape, a_index)
+            broadcast_index(a_index, a_shape, out_shape, out_index)
+            a_pos = index_to_position(a_index, a_strides)
+            out_pos = index_to_position(out_index, out_strides)
+            out[out_pos] = (
+                a_storage[a_pos]
+                if a_index[reduce_dim] == 0
+                else fn(out[out_pos], a_storage[a_pos])
+            )
 
     return njit(parallel=True)(_reduce)
 
