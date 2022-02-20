@@ -275,7 +275,7 @@ class FunctionBase:
         # Tip: Note when implementing this function that
         # cls.backward may return either a value or a tuple.
         d_values = wrap_tuple(cls.backward(ctx, d_output))
-        assert len(d_values) == len(inputs), f"{d_values} {inputs}"
+        # assert len(d_values) == len(inputs), f"length {d_values} != {inputs}"
         result = []
         for var, d_value in zip(inputs, d_values):
             if not is_constant(var):
