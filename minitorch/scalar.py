@@ -230,11 +230,8 @@ class Sigmoid(ScalarFunction):
 
     @staticmethod
     def backward(ctx, d_output):
-        a = abs(ctx.saved_values)  # for stability
-        return d_output * operators.exp(-a) / ((1 + operators.exp(-a)) ** 2)
-        # equivalent to
-        # return (operators.exp(-a) / ((1 + operators.exp(-a))**2) if a >= 0
-        #     else operators.exp(a) / ((1 + operators.exp(a))**2))
+        a = ctx.saved_values
+        return operators.sigmoid_back(a, d_output)
 
 
 class ReLU(ScalarFunction):
@@ -248,7 +245,7 @@ class ReLU(ScalarFunction):
     @staticmethod
     def backward(ctx, d_output):
         a = ctx.saved_values
-        return d_output if a > 0 else 0.0
+        return operators.relu_back(a, d_output)
 
 
 class Exp(ScalarFunction):

@@ -70,6 +70,14 @@ def sigmoid(x):
     return 1.0 / (1.0 + math.exp(-x)) if x >= 0 else math.exp(x) / (math.exp(x) + 1)
 
 
+def sigmoid_back(a, d_output):
+    a = abs(a)  # for stability
+    # equivalent to
+    # return (exp(-a) / ((1 + exp(-a))**2) if a >= 0
+    #     else exp(a) / ((1 + exp(a))**2))
+    return d_output * exp(-a) / ((1 + exp(-a)) ** 2)
+
+
 def relu(x):
     """
     :math:`f(x) =` x if x is greater than 0, else 0
